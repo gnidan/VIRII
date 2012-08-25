@@ -1,0 +1,12 @@
+{
+  "dependencies": [
+    "chai",
+    "mocha",
+    "underscore"
+  ],
+
+  "libs": [],
+
+  "compilers": {
+  }
+}
