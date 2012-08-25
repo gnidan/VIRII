@@ -14,7 +14,10 @@ class Cell
   remove: =>
     @ball.remove()
 
-  metacell: (other, v = 0.5, maxDistance = 200, handleLenRate = 2.4) ->
+  moveAwayFrom: (cell, d) ->
+    @pos = @pos.add (@pos.subtract cell.pos).normalize(d)
+
+  metacell: (other, v = 0.7, maxDistance = 100, handleLenRate = 2.4) ->
     d = @pos.getDistance other.pos
 
     if d > maxDistance
