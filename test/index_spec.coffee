@@ -11,4 +11,4 @@ describe "App", ->
 
   it 'should create the app', ->
     a = new App()
-    expect(a.f).to.equal 1
+    expect(a).to.exist
