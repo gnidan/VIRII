@@ -9808,4 +9808,4 @@ Crafty.c("Delay", {
 		});
 	}
 });
- })(Crafty,window,window.document);
+ })(window.Crafty,window,window.document);

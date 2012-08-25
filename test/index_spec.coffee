@@ -1,3 +1,4 @@
+test = require './setup'
 expect    = require('chai').expect
 
 App = require 'index'

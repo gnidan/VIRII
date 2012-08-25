@@ -1,6 +1,8 @@
 jsdom = require('jsdom').jsdom
 global.document or= jsdom()
 global.window   or= global.document.createWindow()
+global.navigator =
+  userAgent: 'WebKit'
 
 module.exports =
   create: ->
@@ -13,4 +15,3 @@ module.exports =
     throw new Error(arguments...)
 
   _setup: ->
-
