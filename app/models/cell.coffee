@@ -7,20 +7,27 @@ Virus = require 'models/virus'
 
 C_r = 0.1
 DIVIDE_LENGTH = 1
-CRITICAL_MASS = 4000
+CRITICAL_MASS = 3000
 
 
 class Cell extends Object
-  @_symbol: null
-  @_getNewId: ->
-    
+  @_radius: 20
 
-  defaults:
+  @_style:
     fillColor: 'black'
 
+  @_symbol: null
+
+  @symbol: ->
+    return Cell._symbol if Cell._symbol?
+    
+    ball = new Paper.Path.Circle(new Paper.Point(0, 0), Cell._radius)
+    ball.style = Cell._style
+
+    Cell._symbol = new Paper.Symbol(ball)
+
   constructor: (@pos, @world, opts) ->
-    r = 20
-    super(@pos, r, @world, opts)
+    super(@pos, Cell._radius, @world, opts)
 
     @infected = false
     @viruses = []
@@ -28,20 +35,16 @@ class Cell extends Object
   objectHitsBoundary: (object) ->
 
   remove: () ->
-    super
+    if @placedSymbol?
+      @placedSymbol.remove()
+      delete @placedSymbol
 
     if @mitosis?
       @mitosis.remove()
       delete @mitosis
 
-    for virus in @viruses
-      virus.ball.remove()
-
   render: () ->
-    super
-
-    for virus in @viruses
-      virus.render()
+    @placedSymbol = Cell.symbol().place(@pos)
 
   divide: ->
     @mass = @mass / 2
@@ -52,7 +55,6 @@ class Cell extends Object
       length: DIVIDE_LENGTH
 
     @child = new Cell(childPos, @world)
-    @child.render()
 
     @ignoredCollisions.push @child
     @child.ignoredCollisions.push this
@@ -69,7 +71,7 @@ class Cell extends Object
     @infected = true
 
   canDivide: ->
-    (@mass > CRITICAL_MASS) and (@world.length < 32) and not @infected
+    (@mass > CRITICAL_MASS) and (@world.length < 128) and not @infected
 
   update: (ms) ->
     if ms == 0
@@ -100,13 +102,25 @@ class Cell extends Object
     if @infected and @mass > CRITICAL_MASS
       @spawn()
 
+  move: (ms) ->
+    super
+
+    @updatePosition()
+
+  updatePosition: ->
+    if @placedSymbol?
+      @placedSymbol.position = @pos
+
+    if @mitosis?
+      @mitosis.remove()
+      delete @mitosis
+
   spawn: ->
     virus = new Virus(@pos, this)
     @ignoredCollisions.push virus
     virus.ignoredCollisions.push this
 
     @viruses.push virus
-    console.log @viruses.length
 
   moveAwayFrom: (pos, ms) ->
     dir = @pos.subtract(pos)

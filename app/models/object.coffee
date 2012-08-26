@@ -9,10 +9,7 @@ class Object
     Object._lastId += 1
     Object._lastId
     
-  defaults:
-    fillColor: 'black'
-
-  constructor: (@pos, @r, @world, opts) ->
+  constructor: (@pos, @r, @world) ->
     @id = Object._getNewId()
 
     # pixels / s
@@ -26,10 +23,7 @@ class Object
 
     @ignoredCollisions = []
 
-    for k, v of @defaults
-      this[k] = v
-    for k, v of opts
-      this[k] = v
+    @render()
 
   isObject: ->
     true
@@ -41,13 +35,8 @@ class Object
     false
 
   render: ->
-    @ball = new Paper.Path.Circle(@pos, @r)
-    @ball.fillColor = @fillColor
 
   remove: ->
-    if @ball?
-      @ball.remove()
-      delete @ball
 
   collidesWith: (object) ->
     d = @pos.getDistance object.pos
@@ -66,9 +55,6 @@ class Object
     collisions
 
   update: (ms) ->
-    @remove()
-    @render()
-
     if ms == 0
       return
 

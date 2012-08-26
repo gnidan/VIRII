@@ -26,10 +26,8 @@ class App
 
     w = new World(canvas)
     c1 = new Cell(new Paper.Point(500, 400), w)
-    v = new Virus(new Paper.Point(450, 350), w)
 
     w.add c1
-    w.add v
 
     divide = ->
       c1.divide()

@@ -1,4 +1,5 @@
 Paper = require 'lib/paper'
+Cell = require 'models/cell'
 
 getVector = (radians, length) ->
   new Paper.Point
@@ -39,9 +40,12 @@ metacell = (cell, other, maxDistance = 100, v = 0.5, handleLenRate = 2.4) ->
   radius2 = other.r * d2
 
   path = new Paper.Path([p1a, p2a, p2b, p1b])
-  path.style = cell.ball.style
+  
+  for k,v of Cell._style
+    path.style[k] = Cell._style[k]
+
   path.closed = true
-  path.style = cell.ball.style
+
   segments = path.segments
   segments[0].handleOut = getVector(angle1a - Math.PI / 2, radius1)
   segments[1].handleIn = getVector(angle2a + Math.PI / 2, radius2)
