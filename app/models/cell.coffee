@@ -2,19 +2,42 @@ Paper = require 'lib/paper'
 _ = require('underscore')
 
 metacell = require( 'lib/effects').metacell
-Object =require('models/object')
+Object = require 'models/object'
+Virus = require 'models/virus'
 
 C_r = 0.1
 DIVIDE_LENGTH = 1
 CRITICAL_MASS = 4000
 
+
 class Cell extends Object
+  @_symbol: null
+  @_getNewId: ->
+    
+
   defaults:
     fillColor: 'black'
 
   constructor: (@pos, @world, opts) ->
     r = 20
     super(@pos, r, @world, opts)
+
+    @infected = false
+    @viruses = []
+
+  objectHitsBoundary: (object) ->
+
+  remove: () ->
+    super
+
+    for virus in @viruses
+      virus.ball.remove()
+
+  render: () ->
+    super
+
+    for virus in @viruses
+      virus.render()
 
   divide: ->
     @mass = @mass / 2
@@ -30,7 +53,19 @@ class Cell extends Object
     @ignoredCollisions.push @child
     @child.ignoredCollisions.push this
 
-    @world.push @child
+    @world.add @child
+
+  isCell: ->
+    true
+
+  isWorld: ->
+    true
+
+  infect: (virus) ->
+    @infected = true
+
+  canDivide: ->
+    (@mass > CRITICAL_MASS) and (@world.length < 32) and not @infected
 
   update: (ms) ->
     if ms == 0
@@ -55,24 +90,19 @@ class Cell extends Object
         @child = null
     else
       # divide
-      if @mass > CRITICAL_MASS and @world.length < 32
+      if @canDivide()
         @divide()
 
+    if @infected and @mass > CRITICAL_MASS
+      @spawn()
 
-  move: (ms) ->
-    @vel = @vel.normalize(@speed) if @vel.length > @speed
+  spawn: ->
+    virus = new Virus(@pos, this)
+    @ignoredCollisions.push virus
+    virus.ignoredCollisions.push this
 
-    oldPos = @ball.position
-
-    s = ms / 1000
-
-    delta = @vel.multiply s
-
-    newPos = oldPos.add delta
-
-    @pos = newPos
-
-    @vel = @vel.multiply(1 - @damping * s)
+    @viruses.push virus
+    console.log @viruses.length
 
   moveAwayFrom: (pos, ms) ->
     dir = @pos.subtract(pos)
