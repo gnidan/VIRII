@@ -2,6 +2,7 @@ $ = require 'jqueryify2'
 
 Paper = require 'lib/paper'
 Cell = require 'models/cell'
+Virus = require 'models/virus'
 
 Effects = require 'lib/effects'
 
@@ -23,18 +24,28 @@ class App
       fillColor: 'black'
 
     w = []
-    c1 = new Cell(new Paper.Point(300, 300), 20, w)
-
-    point = new Paper.Point(600, 600)
+    c1 = new Cell(new Paper.Point(500, 400), w)
+    v = new Virus(new Paper.Point(300, 300), w)
 
     w.push c1
+    w.push v
 
     divide = ->
       c1.divide()
 
     paused = false
     time = 0
+    frameTimes = []
+    text = new Paper.PointText(new Paper.Point(20, 20))
+    text.characterStyle.fontSize = 20
     Paper.view.onFrame = (event) ->
+      if frameTimes.length > 60
+        frameTimes = frameTimes.slice(1)
+      frameTimes.push event.time
+
+      text.content = (frameTimes.length /
+        (frameTimes[frameTimes.length - 1] - frameTimes[0]))
+
       ms = (event.time - time) * 1000
       unless paused
         for c in w

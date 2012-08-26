@@ -2,59 +2,19 @@ Paper = require 'lib/paper'
 _ = require('underscore')
 
 metacell = require( 'lib/effects').metacell
+Object =require('models/object')
 
 C_r = 0.1
 DIVIDE_LENGTH = 1
 CRITICAL_MASS = 4000
 
-class Cell
+class Cell extends Object
   defaults:
     fillColor: 'black'
 
-  constructor: (@pos, @r, @world, opts) ->
-    # pixels / s
-    @speed = 60
-    @vel = new Paper.Point(0, 0)
-
-    # velocity magnituded reduced per second
-    @damping = 0.999
-
-    @newVel = null
-    @task = null
-    @mass = Math.PI * @r * @r
-
-    @ignoredCollisions = []
-
-    for k, v of @defaults
-      this[k] = v
-    for k, v of opts
-      this[k] = v
-
-  render: ->
-    @ball = new Paper.Path.Circle(@pos, @r)
-    @ball.fillColor = @fillColor
-
-  remove: =>
-    @ball.remove()
-
-  collidesWith: (object) ->
-    d = @pos.getDistance object.pos
-    newD = object.pos.add(object.vel.divide(2))
-      .getDistance(@pos.add(@vel.divide(5)))
-
-    (newD < @r + object.r)
-
-  checkCollisions: ->
-    collisions = []
-    for object in @world
-      if object.ball.id == @ball.id
-        continue
-
-      if @collidesWith object
-        dontCollide = @ignoredCollisions
-        collisions.push object unless object in dontCollide
-
-    collisions
+  constructor: (@pos, @world, opts) ->
+    r = 20
+    super(@pos, r, @world, opts)
 
   divide: ->
     @mass = @mass / 2
@@ -64,7 +24,7 @@ class Cell
       angle: divideDirection
       length: DIVIDE_LENGTH
 
-    @child = new Cell(childPos, @r, @world)
+    @child = new Cell(childPos, @world)
     @child.render()
 
     @ignoredCollisions.push @child
@@ -73,23 +33,15 @@ class Cell
     @world.push @child
 
   update: (ms) ->
-    if @ball?
-      @ball.remove()
-      delete @ball
-    if @mitosis?
-      @mitosis.remove()
-      delete @mitosis
-
-    @render()
-
     if ms == 0
       return
 
+    oldVel = @vel
+
+    super
+
     # just add some mass for testing
     @mass += ms / 2
-
-    @move(ms)
-    collisions = @checkCollisions()
 
     if @child?
       @child.moveAwayFrom(this.pos)
@@ -106,21 +58,6 @@ class Cell
       if @mass > CRITICAL_MASS and @world.length < 32
         @divide()
 
-    vels = []
-    for other in collisions
-      other.pos.add(@pos.subtract(other.pos).normalize(1))
-
-      vels.push other.vel.subtract(@vel).multiply(C_r * other.mass)
-        .add(@vel.multiply(@mass))
-        .add(other.vel.multiply(other.mass))
-        .divide(@mass + other.mass)
-
-    newVel = _.reduce(vels, ((sum, vel) -> sum.add(vel)), new Paper.Point(0, 0))
-
-    @vel = @vel.add newVel
-
-    for child in @ignoredCollisions
-      child.vel = child.vel.add newVel
 
   move: (ms) ->
     @vel = @vel.normalize(@speed) if @vel.length > @speed
