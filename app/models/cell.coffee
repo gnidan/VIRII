@@ -30,6 +30,10 @@ class Cell extends Object
   remove: () ->
     super
 
+    if @mitosis?
+      @mitosis.remove()
+      delete @mitosis
+
     for virus in @viruses
       virus.ball.remove()
 

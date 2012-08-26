@@ -44,7 +44,7 @@ class Object
     @ball = new Paper.Path.Circle(@pos, @r)
     @ball.fillColor = @fillColor
 
-  remove: =>
+  remove: ->
     if @ball?
       @ball.remove()
       delete @ball
@@ -66,14 +66,7 @@ class Object
     collisions
 
   update: (ms) ->
-    if @ball?
-      @ball.remove()
-      delete @ball
-
-    if @mitosis?
-      @mitosis.remove()
-      delete @mitosis
-
+    @remove()
     @render()
 
     if ms == 0
