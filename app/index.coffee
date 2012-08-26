@@ -3,6 +3,14 @@ $ = require 'jqueryify2'
 Paper = require 'lib/paper'
 Cell = require 'models/cell'
 
+Effects = require 'lib/effects'
+
+hitOptions =
+  segments: false
+  stroke: true
+  fill: true
+  tolerance: 5
+
 class App
   constructor: ->
     console.log "fnord"
@@ -14,24 +22,40 @@ class App
     Paper.project.currentStyle =
       fillColor: 'black'
 
-    c = new Cell(new Paper.Point(100, 100), 40)
-    c2 = new Cell(new Paper.Point(105, 120), 60)
+    w = []
+    c1 = new Cell(new Paper.Point(300, 300), 20, w)
 
+    point = new Paper.Point(600, 600)
 
-    c.render()
-    c2.render()
-    path = c.metacell c2
-    Paper.view.onFrame = ->
-      c.remove()
-      c2.remove()
-      path.remove() if path?
+    w.push c1
 
-      c.render()
-      c2.render()
+    divide = ->
+      c1.divide()
 
-      c2.moveAwayFrom(c, 1)
+    paused = false
+    time = 0
+    Paper.view.onFrame = (event) ->
+      ms = (event.time - time) * 1000
+      unless paused
+        for c in w
+          c.update(ms)
 
-      path = c.metacell c2
+      time = event.time
+
+    tool = new Paper.Tool()
+    tool.onMouseDown = (event) ->
+      hitResult = Paper.project.hitTest(event.point, hitOptions)
+      if hitResult?
+        path = hitResult.item
+        cell = null
+        for c in w
+          cell = c if c.ball.id == path.id
+          
+        cell.fillColor = 'red'
+        window.clickedCell = cell
+        paused = true
+      else
+        paused = false
 
 
   
