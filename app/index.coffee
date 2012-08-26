@@ -4,6 +4,7 @@ Paper = require 'lib/paper'
 Cell = require 'models/cell'
 Virus = require 'models/virus'
 World = require 'models/world'
+Minigame = require 'views/minigame'
 
 Effects = require 'lib/effects'
 
@@ -21,16 +22,15 @@ class App
     canvas = $('#game')[0]
 
     Paper.setup(canvas)
-    Paper.project.currentStyle =
-      fillColor: 'black'
+
+    cellLayer = new Paper.Layer()
+    cellLayer.opacity = 0.8
+    cellLayer.activate()
 
     w = new World(canvas)
     c1 = new Cell(new Paper.Point(500, 400), w)
 
     w.add c1
-
-    divide = ->
-      c1.divide()
 
     frameTimes = []
     text = new Paper.PointText(new Paper.Point(20, 20))
@@ -38,22 +38,10 @@ class App
 
     time = 0
 
-    pause: ->
-      Paper.project.paused = true
-
-    minigame = ->
-      parentLayer = Paper.project.activeLayer
-      Paper.project.paused = true
-      layer = new Paper.Layer()
-      layer.activate()
-      Paper.project.currentStyle =
-        fillColor: 'red'
-
-      new Paper.Path.Rectangle(100, 100, 400, 400)
+    minigame = new Minigame()
       
-      setTimeout((-> Paper.project.activeLayer.remove(); parentLayer.activate(); Paper.project.paused = false), 3000)
-
-    #setTimeout(minigame, 1000)
+#    setTimeout(minigame.render, 5000)
+#    setTimeout(minigame.remove, 7000)
 
     Paper.view.onFrame = (event) ->
       if frameTimes.length > 60

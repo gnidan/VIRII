@@ -41,8 +41,7 @@ metacell = (cell, other, maxDistance = 100, v = 0.5, handleLenRate = 2.4) ->
 
   path = new Paper.Path([p1a, p2a, p2b, p1b])
   
-  for k,v of Cell._style
-    path.style[k] = Cell._style[k]
+  path.style.fillColor = '#F3F3F2'
 
   path.closed = true
 

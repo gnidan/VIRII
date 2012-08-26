@@ -14,7 +14,7 @@ class Cell extends Object
   @_radius: 20
 
   @_style:
-    fillColor: 'black'
+    fillColor: '#F3F3F2'
 
   @_symbol: null
 
