@@ -13,7 +13,7 @@ class Object
     @id = Object._getNewId()
 
     # pixels / s
-    @speed = 60
+    @speed = 20
     @vel = new Paper.Point(0, 0)
 
     # velocity magnituded reduced per second
@@ -114,7 +114,6 @@ class Object
   moveAwayFrom: (pos, ms) ->
     dir = @pos.subtract(pos)
     delta = dir.normalize(@speed)
-    
     @vel = @vel.add delta
 
   moveToward: (pos) ->

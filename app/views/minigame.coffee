@@ -20,6 +20,7 @@ class Minigame
   constructor: (@virus, @cell) ->
     @timer = 10
     @callback = ->
+    console.log @cell.lock
 
   elements: []
 
@@ -104,7 +105,7 @@ class Minigame
 
     if @virus.canInfect(@cell)
       @successText.content = "Success!"
-      setTimeout((=> @remove()), 1000)
+      setTimeout((=> @remove()), 500)
 
   makeTool: () ->
     tool = new Paper.Tool()
@@ -135,7 +136,7 @@ class Minigame
     Paper.project.paused = false
 
     @tool.remove()
-    Paper.project.activeLayer.remove()
+    @layer.remove()
     @parentLayer.activate()
     @parentTool.activate()
 

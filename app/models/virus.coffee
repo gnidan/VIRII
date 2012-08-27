@@ -35,7 +35,7 @@ class Virus extends Object
   constructor: (@pos, @world, opts) ->
     super(@pos, Virus._radius, @world, opts)
 
-    @speed = 80
+    @speed = 60
     @damping = 0.4
 
     @health = 100
@@ -51,14 +51,14 @@ class Virus extends Object
   activate: ->
     @world.activate(this)
     @active = true
-
-    @remove()
-    @render()
+    if @item?
+      @item.style = Virus._activeStyle
 
   deactivate: ->
     @active = false
-    @remove()
-    @render()
+
+    if @item?
+      @item.style = Virus._style
 
   keyStrengthAgainst: (cell) ->
     compare = (color for color in @key)
@@ -66,10 +66,11 @@ class Virus extends Object
     max = 0
     for i in [0 .. cell.lock.length - 1]
       compare = compare.slice(1, compare.length).concat compare.slice(0, 1)
+      console.log compare
 
       subsequence = 0
       for j in [0 .. compare.length - 1]
-        if compare[j] == cell.lock[i]
+        if compare[j] == cell.lock[j]
           subsequence += 1
         else
           subsequence = 0
@@ -99,15 +100,13 @@ class Virus extends Object
         @die()
 
   render: () ->
-    if @active
-      @placedSymbol = Virus.activeSymbol().place(@pos)
-    else
-      @placedSymbol = Virus.symbol().place(@pos)
+    @item = new Paper.Path.Circle(@pos, Virus._radius)
+    @item.style = Virus._style
 
   remove: () ->
-    if @placedSymbol?
-      @placedSymbol.remove()
-      delete @placedSymbol
+    if @item?
+      @item.remove()
+      delete @item
 
   move: (ms) ->
     super
@@ -115,17 +114,19 @@ class Virus extends Object
     @updatePosition()
 
   updatePosition: ->
-    if @placedSymbol?
-      @placedSymbol.position = @pos
+    if @item?
+      @item.position = @pos
 
   jitter: (ms) ->
     CHANGE_DIR_CHANCE = 0.9
     s = ms / 1000
     changeDir = Math.random() < (CHANGE_DIR_CHANCE * s)
+    
+    changeDir = @vel.length < 1
 
-    if changeDir and @world.cells.length > 0
-      idx = Math.floor(Math.random() * @world.cells.length)
-      randomObject = @world.cells[idx]
+    if changeDir and @world.objects.length > 0
+      idx = Math.floor(Math.random() * @world.objects.length)
+      randomObject = @world.objects[idx]
       @moveToward(randomObject.pos)
 
   update: (ms) ->
@@ -142,7 +143,5 @@ class Virus extends Object
 
     if @health <= 0
       @die()
-
-
 
 module.exports = Virus

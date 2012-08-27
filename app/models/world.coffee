@@ -54,6 +54,20 @@ class World
       @activeVirus.deactivate()
     @activeVirus = virus
 
+  objectAtPoint: (point) ->
+    closestObject = null
+    closestDistance = 100000
+    for object in @objects
+      distance = object.pos.getDistance point
+      if distance < closestDistance
+        closestObject = object
+        closestDistance = distance
+
+    if closestDistance <= closestObject.r + 10
+      closestObject
+    else
+      null
+
   objectHitsBoundary: (object) ->
     object.pos.x - object.r < 0 or
     object.pos.x + object.r > @canvas.width or

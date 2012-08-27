@@ -12,7 +12,7 @@ DIVIDE_LENGTH = 1
 DEATH_PERCENTAGE = 0.01 # 1% change of dying every second
 
 REPRODUCTIVE_HEALTH = 80
-MUTATION_RATE = 0.2
+MUTATION_RATE = 0.1
 
 class Cell extends Object
   @_radius: 20
@@ -39,8 +39,6 @@ class Cell extends Object
 
     for k, v of opts
       this[k] = v
-
-    console.log @lock
 
   remove: () ->
     if @placedSymbol?
@@ -109,7 +107,8 @@ class Cell extends Object
 
     for point in points
       virus = new Virus point, @world,
-        key: @lock
+        key: @crackingKey
+      virus.moveAwayFrom @pos
 
       @world.add virus
 
@@ -121,6 +120,7 @@ class Cell extends Object
 
   infect: (virus) ->
     @infected = true
+    @crackingKey = virus.key
 
     unless @scull?
       @scull = new Paper.Raster('scull')
@@ -134,7 +134,7 @@ class Cell extends Object
   updateHealth: (ms) ->
     s = ms / 1000
     if @isInfected()
-      @health -= 50 * s
+      @health -= 25 * s
     else
       @health += Math.random() * 10  * s
 
@@ -156,6 +156,8 @@ class Cell extends Object
       @moveAwayFrom(@child.pos)
 
       @mitosis = metacell(this, @child, @r * 2)
+      if @scull? and @mitosis?
+        @mitosis.moveBelow @scull
 
       if @mitosis == null
         @ignoredCollisions = _.without(@ignoredCollisions, @child)

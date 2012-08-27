@@ -5,6 +5,7 @@ Cell = require 'models/cell'
 Virus = require 'models/virus'
 World = require 'models/world'
 Minigame = require('views/minigame').minigame
+Splash = require 'views/splash'
 colors = require('views/minigame').colors
 
 Effects = require 'lib/effects'
@@ -24,7 +25,7 @@ class App
     Paper.setup(canvas)
 
     cellLayer = new Paper.Layer()
-#    cellLayer.activate()
+    cellLayer.activate()
     
     introducedVirus = false
 
@@ -38,10 +39,11 @@ class App
       lock[i] = color
 
     w = new World(canvas)
-    c1 = new Cell new Paper.Point(500, 400), w,
+    c1 = new Cell new Paper.Point(500, 300), w,
       lock: lock
 
     w.add c1
+
 
     frameTimes = []
     text = new Paper.PointText(new Paper.Point(20, 20))
@@ -52,7 +54,14 @@ class App
     scrolling = null
     scrollMagnitude = null
 
+    initialPopulation = true
     scrollTime = 0
+
+    tool = new Paper.Tool()
+
+    splash = new Splash()
+    splash.render()
+
     Paper.view.onFrame = (event) ->
       if frameTimes.length > 60
         frameTimes = frameTimes.slice(1)
@@ -65,6 +74,12 @@ class App
       s = (event.time - time)
       ms = s * 1000
       time = event.time
+
+      if initialPopulation
+        ms = ms * 10
+        if w.numCells() > 60
+          initialPopulation = false
+          splash.done()
 
       # pixels / s
       scrollAccel = 500
@@ -82,7 +97,6 @@ class App
         for c in w.objects
           c.update(ms)
 
-    tool = new Paper.Tool()
     tool.onKeyDown = (event) =>
       if event.key == 'left'
         scrolling = 'left'
@@ -94,8 +108,7 @@ class App
         scrolling = 'down'
 
       if event.key == 'space'
-        minigame = new Minigame()
-        minigame.render()
+        Paper.project.paused = not Paper.project.paused
 
       scrollVectors =
         up: new Paper.Point(0, -1)
@@ -115,14 +128,16 @@ class App
       scrolling = null
 
     tool.onMouseUp = (event) =>
-      hitResult = Paper.project.hitTest(event.downPoint, hitOptions)
-      if hitResult?
-        debugger
+      hitResult = w.objectAtPoint(event.point)
+
       if w.numCells() >= 1 and not introducedVirus
         unless hitResult?
           v = new Virus(event.point, w)
           w.add v
           v.activate()
           introducedVirus = true
+
+      if hitResult? and hitResult.isVirus()
+        hitResult.activate()
   
 module.exports = App
