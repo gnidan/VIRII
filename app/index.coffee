@@ -4,19 +4,19 @@ Paper = require 'lib/paper'
 Cell = require 'models/cell'
 Virus = require 'models/virus'
 World = require 'models/world'
-Minigame = require 'views/minigame'
+Minigame = require('views/minigame').minigame
+colors = require('views/minigame').colors
 
 Effects = require 'lib/effects'
 
 hitOptions =
-  segments: false
+  segments: true
   stroke: true
   fill: true
   tolerance: 5
 
 class App
   constructor: ->
-    console.log "fnord"
 
   render: ->
     canvas = $('#game')[0]
@@ -24,11 +24,22 @@ class App
     Paper.setup(canvas)
 
     cellLayer = new Paper.Layer()
-    cellLayer.opacity = 0.8
-    cellLayer.activate()
+#    cellLayer.activate()
+    
+    introducedVirus = false
+
+    randomColor = () ->
+      colorIdx = Math.floor(Math.random() * colors.length)
+      colors[colorIdx]
+
+    lock = []
+    for i in [0..3]
+      color = randomColor()
+      lock[i] = color
 
     w = new World(canvas)
-    c1 = new Cell(new Paper.Point(500, 400), w)
+    c1 = new Cell new Paper.Point(500, 400), w,
+      lock: lock
 
     w.add c1
 
@@ -38,11 +49,10 @@ class App
 
     time = 0
 
-    minigame = new Minigame()
-      
-#    setTimeout(minigame.render, 5000)
-#    setTimeout(minigame.remove, 7000)
+    scrolling = null
+    scrollMagnitude = null
 
+    scrollTime = 0
     Paper.view.onFrame = (event) ->
       if frameTimes.length > 60
         frameTimes = frameTimes.slice(1)
@@ -50,25 +60,69 @@ class App
 
       text.content = (frameTimes.length /
         (frameTimes[frameTimes.length - 1] - frameTimes[0]))
+      text.position = Paper.view.bounds.topLeft.add (new Paper.Point(20, 20))
 
-      ms = (event.time - time) * 1000
+      s = (event.time - time)
+      ms = s * 1000
       time = event.time
+
+      # pixels / s
+      scrollAccel = 500
+
+      if scrolling?
+        scrollTime += s
+        scrollSpeed = scrollAccel * scrollTime
+
+        scrollMagnitude = scrollSpeed * s + 50
+
+      else
+        scrollTime = 0
 
       unless Paper.project.paused
         for c in w.objects
           c.update(ms)
 
     tool = new Paper.Tool()
-    tool.onMouseDown = (event) ->
-      hitResult = Paper.project.hitTest(event.point, hitOptions)
+    tool.onKeyDown = (event) =>
+      if event.key == 'left'
+        scrolling = 'left'
+      if event.key == 'right'
+        scrolling = 'right'
+      if event.key == 'up'
+        scrolling = 'up'
+      if event.key == 'down'
+        scrolling = 'down'
+
+      if event.key == 'space'
+        minigame = new Minigame()
+        minigame.render()
+
+      scrollVectors =
+        up: new Paper.Point(0, -1)
+        down: new Paper.Point(0, 1)
+        left: new Paper.Point(-1, 0)
+        right: new Paper.Point(1, 0)
+
+      if scrolling of scrollVectors and scrollMagnitude?
+        scrollVector = scrollVectors[scrolling].normalize(scrollMagnitude)
+        scrollVector.x = Math.floor scrollVector.x
+        scrollVector.y = Math.floor scrollVector.y
+
+        Paper.view.scrollBy scrollVector
+        scrollVector = null
+
+    tool.onKeyUp = (event) =>
+      scrolling = null
+
+    tool.onMouseUp = (event) =>
+      hitResult = Paper.project.hitTest(event.downPoint, hitOptions)
       if hitResult?
-        path = hitResult.item
-        cell = null
-        for c in w.objects
-          cell = c if c.ball.id == path.id
-          
-        cell.fillColor = 'red'
-
-
+        debugger
+      if w.numCells() >= 1 and not introducedVirus
+        unless hitResult?
+          v = new Virus(event.point, w)
+          w.add v
+          v.activate()
+          introducedVirus = true
   
 module.exports = App

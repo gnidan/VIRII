@@ -5,10 +5,14 @@ metacell = require( 'lib/effects').metacell
 Object = require 'models/object'
 Virus = require 'models/virus'
 
+colors = require('views/minigame').colors
+
 C_r = 0.1
 DIVIDE_LENGTH = 1
-CRITICAL_MASS = 3000
+DEATH_PERCENTAGE = 0.01 # 1% change of dying every second
 
+REPRODUCTIVE_HEALTH = 80
+MUTATION_RATE = 0.2
 
 class Cell extends Object
   @_radius: 20
@@ -29,10 +33,14 @@ class Cell extends Object
   constructor: (@pos, @world, opts) ->
     super(@pos, Cell._radius, @world, opts)
 
+    @lock = ['orange', 'orange', 'orange', 'orange']
     @infected = false
-    @viruses = []
+    @health = 50
 
-  objectHitsBoundary: (object) ->
+    for k, v of opts
+      this[k] = v
+
+    console.log @lock
 
   remove: () ->
     if @placedSymbol?
@@ -42,36 +50,98 @@ class Cell extends Object
     if @mitosis?
       @mitosis.remove()
       delete @mitosis
+    
+    if @scull?
+      @scull.remove()
+      delete @scull
 
   render: () ->
     @placedSymbol = Cell.symbol().place(@pos)
 
   divide: ->
-    @mass = @mass / 2
+    @health /= 2
 
     divideDirection = Math.random() * 360
     childPos = @pos.add new Paper.Point
       angle: divideDirection
       length: DIVIDE_LENGTH
 
-    @child = new Cell(childPos, @world)
+    childLock = (color for color in @lock)
+    if Math.random() < MUTATION_RATE
+      keep = Math.floor(Math.random() * (@lock.length + 1))
+
+      randomColor = (except) ->
+        choices = _.without colors, except
+        colorIdx = Math.floor(Math.random() * choices.length)
+        choices[colorIdx]
+      
+      for i in [0 .. colors.length - 1]
+        remaining = colors.length - i
+
+        change = Math.random() < (keep / remaining)
+
+        if change
+          childLock[i] = randomColor(childLock[i])
+          keep -= 1
+
+    @child = new Cell childPos, @world,
+      lock: childLock
 
     @ignoredCollisions.push @child
     @child.ignoredCollisions.push this
 
     @world.add @child
 
+  die: ->
+    if @isInfected()
+      @spawn()
+
+    super
+
+  spawn: ->
+    points = [
+      @pos.add(new Paper.Point(-8, -7)),
+      @pos.add(new Paper.Point(+8, -7)),
+      @pos.add(new Paper.Point(-10, +9)),
+      @pos.add(new Paper.Point(0, +14)),
+      @pos.add(new Paper.Point(+10, +9))
+    ]
+
+    for point in points
+      virus = new Virus point, @world,
+        key: @lock
+
+      @world.add virus
+
   isCell: ->
     true
 
-  isWorld: ->
-    true
+  isInfected: ->
+    @infected
 
   infect: (virus) ->
     @infected = true
 
+    unless @scull?
+      @scull = new Paper.Raster('scull')
+
   canDivide: ->
-    (@mass > CRITICAL_MASS) and (@world.length < 128) and not @infected
+    @health > REPRODUCTIVE_HEALTH and not @infected
+
+  canDie: ->
+    @ignoredCollisions.length == 0
+
+  updateHealth: (ms) ->
+    s = ms / 1000
+    if @isInfected()
+      @health -= 50 * s
+    else
+      @health += Math.random() * 10  * s
+
+    @health = 100 if @health > 100
+
+    if @health <= 0 and @canDie()
+      @die()
 
   update: (ms) ->
     if ms == 0
@@ -80,9 +150,6 @@ class Cell extends Object
     oldVel = @vel
 
     super
-
-    # just add some mass for testing
-    @mass += ms / 2
 
     if @child?
       @child.moveAwayFrom(this.pos)
@@ -97,10 +164,12 @@ class Cell extends Object
     else
       # divide
       if @canDivide()
-        @divide()
+        overcrowdingBias = (150 / Math.sqrt(@world.numCells()) - 17) / 100
+        attempt = Math.random()
 
-    if @infected and @mass > CRITICAL_MASS
-      @spawn()
+        @divide() if attempt < (overcrowdingBias * ms / 1000)
+
+    @updateHealth(ms)
 
   move: (ms) ->
     super
@@ -115,12 +184,8 @@ class Cell extends Object
       @mitosis.remove()
       delete @mitosis
 
-  spawn: ->
-    virus = new Virus(@pos, this)
-    @ignoredCollisions.push virus
-    virus.ignoredCollisions.push this
-
-    @viruses.push virus
+    if @isInfected()
+      @scull.position = @pos
 
   moveAwayFrom: (pos, ms) ->
     dir = @pos.subtract(pos)

@@ -13,7 +13,7 @@ class Object
     @id = Object._getNewId()
 
     # pixels / s
-    @speed = 30
+    @speed = 60
     @vel = new Paper.Point(0, 0)
 
     # velocity magnituded reduced per second
@@ -28,10 +28,10 @@ class Object
   isObject: ->
     true
 
-  isWOrld: ->
+  isCell: ->
     false
 
-  isCell: ->
+  isVirus: ->
     false
 
   render: ->
@@ -54,6 +54,11 @@ class Object
 
     collisions
 
+  die: ->
+    @remove()
+    @world.remove this
+    delete this
+
   update: (ms) ->
     if ms == 0
       return
@@ -63,7 +68,10 @@ class Object
     collisions = @checkCollisions(ms)
 
     for other in collisions
-      other.resolveCollision this
+      if other.isVirus()
+        other.resolveCollision this
+      else
+        this.resolveCollision other
 
   resolveCollision: (other) ->
     delta = @pos.subtract other.pos
