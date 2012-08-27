@@ -89,6 +89,8 @@ class Minigame
     @layer = new Paper.Layer()
     @layer.activate()
 
+    @success = false
+
     @drawBox()
     @drawKey()
     @drawLock()
@@ -104,6 +106,7 @@ class Minigame
     @updateAmount()
 
     if @virus.canInfect(@cell)
+      @success = true
       @successText.content = "Success!"
       setTimeout((=> @remove()), 500)
 
@@ -118,6 +121,9 @@ class Minigame
           @moveBox(event.delta)
 
     tool.onMouseDown = (event) =>
+      if @success
+        return
+
       hitResult = Paper.project.hitTest(event.point, hitOptions)
       if hitResult?
         path = hitResult.item
@@ -133,13 +139,12 @@ class Minigame
     tool
 
   remove: () ->
-    Paper.project.paused = false
-
     @tool.remove()
     @layer.remove()
     @parentLayer.activate()
     @parentTool.activate()
 
+    Paper.project.paused = false
     do @callback
 
 module.exports =

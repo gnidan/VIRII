@@ -34,7 +34,7 @@ class App
       colors[colorIdx]
 
     lock = []
-    for i in [0..3]
+    for i in [0..4]
       color = randomColor()
       lock[i] = color
 

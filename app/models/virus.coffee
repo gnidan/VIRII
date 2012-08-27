@@ -85,19 +85,20 @@ class Virus extends Object
     
     if other.isCell()
       if @active
-        minigame = new Minigame(this, other)
-        minigame.render()
+        unless @minigame?
+          @minigame = new Minigame(this, other)
+          @minigame.render()
 
-        minigame.onRemove =>
-          if @canInfect other
-            other.infect(this)
-          @die()
-
+          @minigame.onRemove =>
+            if @canInfect other
+              other.infect(this)
+              @die()
+            else
+              @deactivate()
       else
         if @canInfect other
           other.infect(this)
-
-        @die()
+          @die()
 
   render: () ->
     @item = new Paper.Path.Circle(@pos, Virus._radius)
