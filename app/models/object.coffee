@@ -13,7 +13,7 @@ class Object
     @id = Object._getNewId()
 
     # pixels / s
-    @speed = 20
+    @speed = 10
     @vel = new Paper.Point(0, 0)
 
     # velocity magnituded reduced per second

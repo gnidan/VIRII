@@ -18,6 +18,7 @@ class Colors
     seq = []
     for i in [0 .. length - 1]
       seq.push Colors.randomColor()
+    seq
 
 
 module.exports = Colors

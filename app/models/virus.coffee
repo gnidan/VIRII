@@ -42,6 +42,8 @@ class Virus extends Object
 
     @key = ['orange', 'orange', 'orange', 'orange']
 
+    @needsResolved = null
+
     for k, v of opts
       this[k] = v
 
@@ -66,7 +68,6 @@ class Virus extends Object
     max = 0
     for i in [0 .. cell.lock.length - 1]
       compare = compare.slice(1, compare.length).concat compare.slice(0, 1)
-      console.log compare
 
       subsequence = 0
       for j in [0 .. compare.length - 1]
@@ -85,15 +86,7 @@ class Virus extends Object
     
     if other.isCell()
       if @active
-        minigame = new Minigame(this, other)
-        minigame.render()
-
-        minigame.onRemove =>
-          if @canInfect other
-            other.infect(this)
-            @die()
-          else
-            @deactivate()
+        @needsResolved = other
       else
         if @canInfect other
           other.infect(this)

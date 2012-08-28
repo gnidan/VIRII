@@ -139,12 +139,17 @@ class Minigame
     tool
 
   remove: () ->
+    if @removed?
+      return
+
     @tool.remove()
     @layer.remove()
     @parentLayer.activate()
     @parentTool.activate()
 
     Paper.project.paused = false
+    @removed = true
+
     do @callback
 
 module.exports =

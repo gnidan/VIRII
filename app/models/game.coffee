@@ -7,6 +7,7 @@ Cell = require 'models/cell'
 Virus = require 'models/virus'
 
 Splash = require 'views/splash'
+Minigame = require('views/minigame').minigame
 
 class Game
   @_showFPS = true
@@ -74,6 +75,24 @@ class Game
     unless @paused()
       for object in @world.objects
         object.update(ms)
+
+      activeVirus = @world.activeVirus
+      if activeVirus? and activeVirus.needsResolved?
+        @pause()
+
+        cell = activeVirus.needsResolved
+        activeVirus.needsResolved = null
+
+        minigame = new Minigame(activeVirus, cell)
+        minigame.render()
+
+        minigame.onRemove =>
+          if activeVirus.canInfect cell
+            cell.infect(activeVirus)
+            activeVirus.die()
+          else
+            activeVirus.deactivate()
+          @unpause()
 
   ##
   # PAUSE
