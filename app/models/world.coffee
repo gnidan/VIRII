@@ -1,7 +1,7 @@
 _ = require 'underscore'
 
 class World
-  constructor: (@canvas) ->
+  constructor: (@canvas, @parent) ->
     @objects = []
     @length = 0
     @viruses = []

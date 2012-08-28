@@ -8,6 +8,7 @@ hitOptions =
 
 class Splash
   constructor: ->
+    @removeCallback = null
   
   elements: []
 
@@ -100,17 +101,19 @@ class Splash
     @parentLayer.activate()
 
   done: ->
-    Paper.project.paused = true
     @layer.activate()
     @loading.remove()
     @drawPlay()
 
+  onRemove: (callback) ->
+    @removeCallback = callback
+
   remove: ->
-    Paper.project.paused = false
     @parentLayer.opacity = 1
     @parentLayer.activate()
     @parentTool.activate()
     @layer.remove()
     @tool.remove()
+    do @removeCallback
 
 module.exports = Splash
