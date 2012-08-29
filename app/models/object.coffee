@@ -28,7 +28,7 @@ class Object
   isObject: ->
     true
 
-  isCell: ->
+  isBacterium: ->
     false
 
   isVirus: ->

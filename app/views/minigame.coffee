@@ -17,10 +17,10 @@ class Info
 
 
 class Minigame
-  constructor: (@virus, @cell) ->
+  constructor: (@virus, @bacteria) ->
     @timer = 10
     @callback = ->
-    console.log @cell.lock
+    console.log @bacteria.lock
 
   elements: []
 
@@ -75,7 +75,7 @@ class Minigame
     @timerText.content = "0:0" + @timer
 
   updateAmount: () ->
-    @successText.content = @virus.keyStrengthAgainst(@cell)
+    @successText.content = @virus.keyStrengthAgainst(@bacteria)
 
   onRemove: (callback) ->
     @callback = callback
@@ -105,7 +105,7 @@ class Minigame
   checkKey: () ->
     @updateAmount()
 
-    if @virus.canInfect(@cell)
+    if @virus.canInfect(@bacteria)
       @success = true
       @successText.content = "Success!"
       setTimeout((=> @remove()), 500)

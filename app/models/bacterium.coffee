@@ -1,7 +1,7 @@
 Paper = require 'lib/paper'
 _ = require('underscore')
 
-metacell = require( 'lib/effects').metacell
+metaball = require( 'lib/effects').metaball
 Object = require 'models/object'
 Virus = require 'models/virus'
 
@@ -14,7 +14,7 @@ DEATH_PERCENTAGE = 0.01 # 1% change of dying every second
 REPRODUCTIVE_HEALTH = 80
 MUTATION_RATE = 0.1
 
-class Cell extends Object
+class Bacterium extends Object
   @_radius: 20
 
   @_style:
@@ -23,15 +23,15 @@ class Cell extends Object
   @_symbol: null
 
   @symbol: ->
-    return Cell._symbol if Cell._symbol?
+    return Bacterium._symbol if Bacterium._symbol?
     
-    ball = new Paper.Path.Circle(new Paper.Point(0, 0), Cell._radius)
-    ball.style = Cell._style
+    ball = new Paper.Path.Circle(new Paper.Point(0, 0), Bacterium._radius)
+    ball.style = Bacterium._style
 
-    Cell._symbol = new Paper.Symbol(ball)
+    Bacterium._symbol = new Paper.Symbol(ball)
 
   constructor: (@pos, @world, opts) ->
-    super(@pos, Cell._radius, @world, opts)
+    super(@pos, Bacterium._radius, @world, opts)
 
     @lock = ['orange', 'orange', 'orange', 'orange']
     @infected = false
@@ -54,7 +54,7 @@ class Cell extends Object
       delete @scull
 
   render: () ->
-    @placedSymbol = Cell.symbol().place(@pos)
+    @placedSymbol = Bacterium.symbol().place(@pos)
 
   divide: ->
     @health /= 2
@@ -82,7 +82,7 @@ class Cell extends Object
           childLock[i] = randomColor(childLock[i])
           keep -= 1
 
-    @child = new Cell childPos, @world,
+    @child = new Bacterium childPos, @world,
       lock: childLock
 
     @ignoredCollisions.push @child
@@ -112,7 +112,7 @@ class Cell extends Object
 
       @world.add virus
 
-  isCell: ->
+  isBacterium: ->
     true
 
   isInfected: ->
@@ -155,7 +155,7 @@ class Cell extends Object
       @child.moveAwayFrom(this.pos)
       @moveAwayFrom(@child.pos)
 
-      @mitosis = metacell(this, @child, @r * 2)
+      @mitosis = metaball(this, @child, @r * 2)
       if @scull? and @mitosis?
         @mitosis.moveBelow @scull
 
@@ -166,7 +166,7 @@ class Cell extends Object
     else
       # divide
       if @canDivide()
-        overcrowdingBias = (150 / Math.sqrt(@world.numCells()) - 17) / 100
+        overcrowdingBias = (150 / Math.sqrt(@world.numBacteria()) - 17) / 100
         attempt = Math.random()
 
         @divide() if attempt < (overcrowdingBias * ms / 1000)
@@ -200,4 +200,4 @@ class Cell extends Object
     delta = dir.normalize(@speed)
     @vel = @vel.add delta
 
-module.exports = Cell
+module.exports = Bacterium

@@ -62,29 +62,29 @@ class Virus extends Object
     if @item?
       @item.style = Virus._style
 
-  keyStrengthAgainst: (cell) ->
+  keyStrengthAgainst: (bacterium) ->
     compare = (color for color in @key)
 
     max = 0
-    for i in [0 .. cell.lock.length - 1]
+    for i in [0 .. bacterium.lock.length - 1]
       compare = compare.slice(1, compare.length).concat compare.slice(0, 1)
 
       subsequence = 0
       for j in [0 .. compare.length - 1]
-        if compare[j] == cell.lock[j]
+        if compare[j] == bacterium.lock[j]
           subsequence += 1
         else
           subsequence = 0
         max = subsequence if subsequence > max
     max
 
-  canInfect: (cell) ->
-    @keyStrengthAgainst(cell) == @key.length
+  canInfect: (bacterium) ->
+    @keyStrengthAgainst(bacterium) == @key.length
 
   resolveCollision: (other) ->
     super
     
-    if other.isCell()
+    if other.isBacterium()
       if @active
         @needsResolved = other
       else

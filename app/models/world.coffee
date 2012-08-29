@@ -5,32 +5,32 @@ class World
     @objects = []
     @length = 0
     @viruses = []
-    @cells = []
+    @bacteria = []
     @activeVirus = null
     @items = []
 
-  numCells: () ->
-    @cells.length
+  numBacteria: () ->
+    @bacteria.length
 
-  numInfectedCells: () ->
-    infectedCells = _.filter @cells, (cell) ->
-      cell.isInfected()
-    infectedCells.length
+  numInfectedBacteria: () ->
+    infectedBacteria = _.filter @bacteria, (bacterium) ->
+      bacterium.isInfected()
+    infectedBacteria.length
 
   numViruses: () ->
     @viruses.length
 
   printInfo: () ->
-    console.log "Cells: " + @numCells()
+    console.log "Bacteria: " + @numBacteria()
     console.log "Viruses: " + @numViruses()
-    console.log "Infected Cells: " + @numInfectedCells()
+    console.log "Infected Bacteria: " + @numInfectedBacteria()
 
   add: (object) ->
     @objects.push object
     @length += 1
 
-    if object.isCell()
-      @cells.push object
+    if object.isBacterium()
+      @bacteria.push object
 
     if object.isVirus()
       @viruses.push object
@@ -41,8 +41,8 @@ class World
     @objects = _.without @objects, object
     @length = @objects.length
 
-    if object.isCell()
-      @cells = _.without @cells, object
+    if object.isBacterium()
+      @bacteria = _.without @bacteria, object
 
     if object.isVirus()
       @viruses = _.without @viruses, object

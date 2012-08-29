@@ -3,7 +3,7 @@ Paper = require 'lib/paper'
 Colors = require 'lib/colors'
 
 World = require 'models/world'
-Cell = require 'models/cell'
+Bacterium = require 'models/bacterium'
 Virus = require 'models/virus'
 
 Splash = require 'views/splash'
@@ -15,12 +15,12 @@ class Game
   constructor: (@canvas) ->
     @world = new World @canvas, this
 
-    @cellLayer = new Paper.Layer()
+    @bacteriumLayer = new Paper.Layer()
 
     @tool = @_makeGameTool()
     
   start: ->
-    @cellLayer.activate()
+    @bacteriumLayer.activate()
     @lives = 3
     @time = 0
 
@@ -38,7 +38,7 @@ class Game
   _setup: ->
     @unpause()
 
-    @_generateCell(new Paper.Point(500, 300))
+    @_generateBacterium(new Paper.Point(500, 300))
 
     @_settingUp = true
     @_showInfo()
@@ -69,7 +69,7 @@ class Game
 
     if @_settingUp
       ms = ms * 10
-      if @world.numCells() > 30
+      if @world.numBacteria() > 30
         @_finishSetup()
 
     unless @paused()
@@ -80,15 +80,15 @@ class Game
       if activeVirus? and activeVirus.needsResolved?
         @pause()
 
-        cell = activeVirus.needsResolved
+        bacterium = activeVirus.needsResolved
         activeVirus.needsResolved = null
 
-        minigame = new Minigame(activeVirus, cell)
+        minigame = new Minigame(activeVirus, bacterium)
         minigame.render()
 
         minigame.onRemove =>
-          if activeVirus.canInfect cell
-            cell.infect(activeVirus)
+          if activeVirus.canInfect bacterium
+            bacterium.infect(activeVirus)
             activeVirus.die()
           else
             activeVirus.deactivate()
@@ -114,7 +114,7 @@ class Game
       object.activate()
 
   _clickedNothing: (pos) ->
-    if @world.numViruses() == 0 and @world.numInfectedCells() == 0 and \
+    if @world.numViruses() == 0 and @world.numInfectedBacteria() == 0 and \
           @lives >= 0
       @_generateVirus(pos)
       @lives -= 1
@@ -153,12 +153,12 @@ class Game
   ##
   # Object generators
   ##
-  _generateCell: (pos) ->
-    cell = new Cell pos, @world,
+  _generateBacterium: (pos) ->
+    bacterium = new Bacterium pos, @world,
       lock: Colors.randomSequence()
 
-    @world.add cell
-    cell
+    @world.add bacterium
+    bacterium
 
   _generateVirus: (pos) ->
     color = Colors.randomColor()
